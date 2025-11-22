@@ -1,6 +1,8 @@
 services:
   db:
     image: postgres:18.1-alpine3.22
+    env_file:
+      - .env
     restart: always
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
@@ -14,9 +16,11 @@ services:
 
 
   backend:
-    build: ./backend
+    image: yuraaceventura/backend
     expose:
       - "8000"
+    env_file:
+      - .env
     environment:
       DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
       POSTGRES_DB: ${POSTGRES_DB}
@@ -32,7 +36,7 @@ services:
 
 
   frontend:
-    build: ./frontend
+    image: yuraaceventura/frontend
     expose:
       - "3000"
     environment:
@@ -43,7 +47,7 @@ services:
 
 
   nginx:
-    build: ./nginx
+    build: yuraaceventura/gateway
     ports:
       - "80:80"
     volumes:
