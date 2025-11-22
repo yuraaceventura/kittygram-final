@@ -47,7 +47,7 @@ services:
 
 
   nginx:
-    build: yuraaceventura/gateway
+    image: yuraaceventura/gateway
     ports:
       - "80:80"
     volumes:
