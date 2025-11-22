@@ -77,7 +77,7 @@ jobs:
           sshpass -p '${{ secrets.SSH_PASSWORD }}' scp \
           -o StrictHostKeyChecking=no \
           -o UserKnownHostsFile=/dev/null \
-          docker-compose.production.yaml \
+          docker-compose.production.yml \
           ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/deploy/app/
 
 
@@ -91,6 +91,36 @@ jobs:
           echo 'POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}' > .env
           echo 'POSTGRES_USER=${{ secrets.POSTGRES_USER }}' >> .env
           echo 'POSTGRES_DB=${{ secrets.POSTGRES_DB }}' >> .env
-          sudo docker-compose -f docker-compose.production.yaml pull
-          sudo docker-compose -f docker-compose.production.yaml down
-          sudo docker-compose -f docker-compose.production.yaml up -d "
+          sudo docker-compose -f docker-compose.production.yml pull
+          sudo docker-compose -f docker-compose.production.yml down
+          sudo docker-compose -f docker-compose.production.yml up -d "
+    
+  autotests:
+      runs-on: ubuntu-latest
+      steps:
+        - name: Run autotests
+          run: |
+            sshpass -p '${{ secrets.SSH_PASSWORD }}' ssh \
+            -o StrictHostKeyChecking=no \
+            -o UserKnownHostsFile=/dev/null \
+            deploy@${{ secrets.SSH_HOST }} "
+            cd /home/deploy/app
+            pip install pytest
+            pytest "
+
+
+  telegram_msg:
+      runs-on: ubuntu-latest
+      steps:
+      - name: Send message to TG 
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ secrets.TG_ID }}
+          token: ${{ secrets.TG_TOKEN }}
+          message: |
+            ${{ github.actor }} created commit:
+            Commit message: ${{ github.event.commits[0].message }}
+            
+            Repository: ${{ github.repository }}
+            
+            See changes: https://github.com/${{ github.repository }}/commit/${{github.sha}}
