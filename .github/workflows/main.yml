@@ -110,8 +110,10 @@ jobs:
       
       - name: Install dependencies
         run: |
+          pip install setuptools
           pip install pytest
-      
+          pip install --no-cache-dir -r ./backend/requirements.txt
+          pip install psycopg2-binary
       - name: Run tests against deployed services
         run: |
           python -m pytest 
