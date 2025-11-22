@@ -97,6 +97,7 @@ jobs:
     
   autotests:
       runs-on: ubuntu-latest
+      needs: deploy
       steps:
         - name: Run autotests
           run: |
@@ -111,6 +112,7 @@ jobs:
 
   telegram_msg:
       runs-on: ubuntu-latest
+      needs: autotests 
       steps:
       - name: Send message to TG 
         uses: appleboy/telegram-action@master
