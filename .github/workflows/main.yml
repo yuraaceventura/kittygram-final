@@ -64,36 +64,45 @@ jobs:
               ${{ secrets.DOCKER_LOGIN }}/kittygram_gateway:latest
 
 
-  deploy:
-      runs-on: ubuntu-latest
-      needs: 
-        - build_and_push_to_docker_hub
-      steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
-      - name: Install sshpass and copy files
-        run: |
-          sudo apt-get update && sudo apt-get install -y sshpass
-          sshpass -p '${{ secrets.SSH_PASSWORD }}' scp \
-          -o StrictHostKeyChecking=no \
-          -o UserKnownHostsFile=/dev/null \
-          docker-compose.production.yml \
-          ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/deploy/app/
+deploy:
+  runs-on: ubuntu-latest
+  needs: build_and_push_to_docker_hub
+  steps:
+    - name: Checkout repo
+      uses: actions/checkout@v3
 
+    - name: Copy docker-compose.production.yml via SCP
+      uses: appleboy/scp-action@v0.1.7
+      with:
+        host: ${{ secrets.SSH_HOST }}
+        username: user
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        port: 22
+        source: "docker-compose.production.yml"
+        target: "/home/deploy/app/"
 
-      - name: Executing remote ssh commands to deploy
-        run: |
-          sshpass -p '${{ secrets.SSH_PASSWORD }}' ssh \
-          -o StrictHostKeyChecking=no \
-          -o UserKnownHostsFile=/dev/null \
-          deploy@${{ secrets.SSH_HOST }} "
+    - name: Execute remote deployment commands via SSH
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.SSH_HOST }}
+        username: ${{ secrets.SSH_USER }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        port: 22
+        script: |
+          # Create app directory if not exists
+          mkdir -p /home/deploy/app
           cd /home/deploy/app
+
+          # Create .env file with PostgreSQL credentials
           echo 'POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}' > .env
           echo 'POSTGRES_USER=${{ secrets.POSTGRES_USER }}' >> .env
           echo 'POSTGRES_DB=${{ secrets.POSTGRES_DB }}' >> .env
+
+          # Pull latest images, stop old containers, start new ones
           sudo docker-compose -f docker-compose.production.yml pull
           sudo docker-compose -f docker-compose.production.yml down
-          sudo docker-compose -f docker-compose.production.yml up -d "
+          sudo docker-compose -f docker-compose.production.yml up -d
+
     
   autotests:
       runs-on: ubuntu-latest
