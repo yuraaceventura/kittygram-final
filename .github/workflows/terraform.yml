@@ -24,7 +24,7 @@ jobs:
           terraform_version: 1.6.6
 
       - name: Create SA key file
-        run: echo "${{ secrets.YC_SA_KEY }}" > sa-key.json
+        run: echo "${{ secrets.YC_SA_KEY }}" > authorized_key.json
 
       - name: Terraform Init
         working-directory: ./infra
