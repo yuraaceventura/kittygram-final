@@ -79,7 +79,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 22
           source: "docker-compose.production.yml"
-          target: "/home/deploy/app/"
+          target: "/home/user/app/"
 
       - name: Execute remote deployment commands via SSH
         uses: appleboy/ssh-action@v1.0.3
@@ -90,8 +90,8 @@ jobs:
           port: 22
           script: |
             # Create app directory if not exists
-            mkdir -p /home/deploy/app
-            cd /home/deploy/app
+            mkdir -p /home/user/app
+            cd /home/user/app
 
             # Create .env file with PostgreSQL credentials
             echo 'POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}' > .env
