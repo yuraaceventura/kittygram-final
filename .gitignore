@@ -1,3 +1,6 @@
 .venv/
 .DS_Store
 .env
+infra/.terraform/
+infra/.terraform.lock.hcl
+/infra/authorized_key.json
